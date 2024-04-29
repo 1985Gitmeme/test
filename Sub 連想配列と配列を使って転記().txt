@@ -1,0 +1,41 @@
+Sub 連想配列と配列を使って転記()
+ 
+
+Dim ws As Worksheet, sh As Worksheet
+
+Set ws = ThisWorkbook.Worksheets("SP")  '【変更】Workbookの設定
+Set sh = ThisWorkbook.Worksheets("SP")
+sh.Rows("2" & sh.Rows.Count).ClearContents '【変更】B列の最終行が最終行
+
+Dim WsLastR As Long, WsLastCol As Long
+WsLastR = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+WsLastCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column
+
+Dim WsHeaderDic As Object
+Set WsHeaderDic = CreateObject("Scripting.Dictionary")
+
+Dim i As Long '見出し行を辞書に登録する。KeyはValuede列番号がItem
+For i = 1 To WsLastCol
+  WsHeaderDic(ws.Cells(1, i).Value) = i  '【変更】ヘッダーの行数の設定
+Next i
+
+Dim WsArray As Variant, ShArray() As Variant
+WsArray = ws.Range(ws.Cells(2, 1), ws.Cells(WsLastR, WsLastCol)).Value  '【変更】コピー元の範囲の設定
+
+ReDim ShArray(1 To WsLastR - 1, 1 To sh.Cells(1, sh.Columns.Count).End(xlToLeft).Column)
+
+
+Dim ShCol As Long, WsCol As Long
+
+For ShCol = 1 To UBound(ShArray, 2)
+ If WsHeaderDic.Exists(sh.Cells(1, ShCol).Value) Then  '【変更】ヘッダーが１行目の前提
+  WsCol = WsHeaderDic(sh.Cells(1, ShCol)).Value  '【変更】ヘッダーが１行目の前提
+   For i = 1 To UBound(WsArray, 1)
+    ShArray(i, ShCol) = WsArray(i, WsCol)
+   Next i
+ End If
+Next ShCol
+
+sh.Range(sh.Cells(2, 1), sh.Cells(WsLastR - 1, UBound(ShArray, 2))).Value = ShArray   '【変更】貼り付け先が２行目いという前提
+
+End Sub

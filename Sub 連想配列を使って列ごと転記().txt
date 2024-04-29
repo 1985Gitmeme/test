@@ -1,0 +1,69 @@
+Option Explicit
+
+Sub 連想配列を使って列ごと転記()
+
+Dim srcWS As Worksheet, destWS As Worksheet
+Dim srcHeader As Range, destHeader As Range
+Dim srcLastRow As Long, srcLastCol As Long, destLastCol As Long
+Dim srcData As Variant, destData As Variant
+Dim srcCol As Long, destCol As Long
+Dim i As Long, j As Long
+
+'ソースシートとターゲットシートを設定
+Set srcWS = ThisWorkbook.Worksheets("SP")  '【変更】Workbookの設定
+Set destWS = ThisWorkbook.Worksheets("SP")
+'destWS.Rows("2" & destWS.Rows.Count).ClearContents '２行目以降の記入された値を削除
+
+
+Dim scrHeaderR As CountHeaderRow
+Set scrHeaderR = New CountHeaderRow
+scrHeaderR.TargetHeader = 8 '【変更】ヘッダー行の行数を設定
+
+Dim destHeaderR As CountHeaderRow
+Set destHeaderR = New CountHeaderRow
+destHeaderR.TargetHeader = 8 '【変更】ヘッダー行の行数を設定
+
+ 
+'ソースシートターゲット使途の見出し行を設定
+Set srcHeader = srcWS.Rows(scrHeaderR)  '【変更】Workbookの設定
+Set srcHeader = destWS.Rows(destHeaderR)
+
+'ソースシートの最終行と最終列を取得ターゲットシート最終列
+srcLastRow = srcWS.Cells(srcWS.Rows.Count, 2).End(xlUp).Row
+srcLastCol = srcWS.Cells(scrHeaderR, srcWS.Columns.Count).End(xlToLeft).Column
+destLastCol = destWS.Cells(destHeaderR, destWS.Columns.Count).End(xlToLeft).Column
+
+'ソースシートのデータを配列に格納（見出し行をのぞく）
+srcData = srcWS.Range(srcWS.Cells(2, 1), srcWS.Cells(srcLastRow, srcLastCol)).Value
+
+
+'ターゲットシートのデータを配列に格納
+ReDim destData(1 To srcLastRow - 1, 1 To destLastCol)
+
+'各列を取得
+For destCol = 1 To destLastCol
+'ソースシートの見出しと一致する列を見つける
+
+srcCol = 0
+For i = 1 To srcLastCol
+ If srcHeader.Cells(i).Value = destHeader.Cells(destCol).Value Then
+  srcCol = i
+  '一致する列が見つかった場合、データをdestColに取得する
+  For j = 1 To UBound(srcData, 1)
+   destData(j, destCol) = srcData(j, srcCol)
+  Next j
+  Exit For '一致するセルが見つかったら、次のdestColに移動
+ End If
+Next i
+Next destCol
+
+'配列からターゲットソースにデータを書き込む
+'最終行
+Dim LastRow As Long
+LastRow = destWS.Cells(destWS.Rows.Count, 2).End(xlUp).Row
+
+destWS.Range(destWS.Cells(LastRow, 2), destWS.Cells(srcLastRow, destLastCol)).Value = destData
+
+End Sub
+
+
