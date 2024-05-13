@@ -1,0 +1,74 @@
+配列の統合
+
+Option Explicit
+
+Sub MainModule()
+    Dim array1() As Variant
+    Dim array2() As Variant
+    Dim array3() As Variant
+    Dim array4() As Variant
+    ' 他の配列も同様に宣言
+    
+    ' 配列を初期化
+    array1 = Range("D1:F3").value
+    array2 = Range("D5:F7").value
+    array3 = Range("D9:F11").value
+    array3 = Range("D19:G21").value
+    ' 他の配列も同様に初期化
+    
+    Dim combinedArray() As Variant
+    CombineArrays combinedArray, array1, array2, array3 ' 他の配列も同様に引数として渡す
+    
+    ' 統合された配列をJ1セルを起点に出力
+    OutputArrayToRange combinedArray, ThisWorkbook.Sheets("Sheet1").Range("J1")
+End Sub
+
+Sub CombineArrays(ByRef combinedArray() As Variant, ParamArray arrays() As Variant)
+    Dim maxRows As Long
+    Dim maxCols As Long
+    Dim i As Long, j As Long, k As Long
+    
+    ' K個の配列のうち、最大の行数と列数を取得
+    For k = LBound(arrays) To UBound(arrays)
+        If UBound(arrays(k), 1) > maxRows Then
+            maxRows = UBound(arrays(k), 1)
+        End If
+        If UBound(arrays(k), 2) > maxCols Then
+            maxCols = UBound(arrays(k), 2)
+        End If
+    Next k
+    
+    ' 統合された配列のサイズを設定
+    ReDim combinedArray(1 To maxRows, 1 To maxCols)
+    
+    ' 統合された配列を初期化
+    For i = 1 To maxRows
+        For j = 1 To maxCols
+            combinedArray(i, j) = Empty
+        Next j
+    Next i
+    
+    ' 各配列の要素を統合配列に統合
+    For k = LBound(arrays) To UBound(arrays)
+        For i = 1 To UBound(arrays(k), 1)
+            For j = 1 To UBound(arrays(k), 2)
+                If IsEmpty(combinedArray(i, j)) Then
+                    combinedArray(i, j) = arrays(k)(i, j)
+                End If
+            Next j
+        Next i
+    Next k
+End Sub
+
+Sub OutputArrayToRange(arr() As Variant, startCell As Range)
+    Dim ws As Worksheet
+    Set ws = startCell.Worksheet
+    Dim numRows As Long, numCols As Long
+    numRows = UBound(arr, 1)
+    numCols = UBound(arr, 2)
+    
+    Dim outputRange As Range
+    Set outputRange = startCell.Resize(numRows, numCols)
+    
+    outputRange.value = arr
+End Sub

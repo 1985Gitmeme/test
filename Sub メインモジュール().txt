@@ -1,0 +1,106 @@
+Sub メインモジュール()
+
+Dim v成績表 As c成績表
+Set v成績表 = New c成績表
+
+
+Dim 成績表シート As Worksheet
+Set 成績表シート = ThisWorkbook.Worksheets("成績表")  '対象シート名が変更された場合""内を修正
+
+Set v成績表.対象シート① = 成績表シート
+ActiveSheet.AutoFilterMode = False
+
+Dim v転記先 As c成績表
+Set v転記先 = New c成績表
+
+Dim 転記先シート As Worksheet
+Set 転記先シート = ThisWorkbook.Worksheets("転記先")  '対象シート名が変更された場合""内を修正
+
+Set v転記先.対象シート② = 転記先シート
+
+
+Dim 末尾行① As Long
+末尾行① = 成績表シート.Cells(成績表シート.Rows.Count, "B").End(xlUp).Row
+
+Call v成績表.セル範囲設定(1, 末尾行①, 2, 6)
+Call v成績表.対象範囲にのセル色を初期色にする
+Call v成績表.対象範囲にのセル色を赤にする
+Call v成績表.対象範囲をAutoFilterにかける(1, "国語")
+
+Dim Array1() As Variant
+'Call v成績表.抽出結果の配列を呼び出す(Array1() As Long)
+Call v成績表.AutoFilter結果を転記する(Array1() As Long)
+
+Dim 末尾行② As Long
+末尾行② = 転記先シート.Cells(転記先シート.Rows.Count, "A").End(xlUp).Row
+
+転記先シート.Cells(転記先シート.Rows.Count, "A").End(xlUp).Row
+
+n対象シート.Range(n対象シート.Cells(n開始行, n開始列)).Resize(UBound(Array1, 1), UBound(Array1, 2)) = Array1
+
+
+Set v成績表 = Nothing
+
+
+
+End Sub
+Option Explicit
+
+Private m対象シート As Worksheet
+Private n対象シート As Worksheet
+Private mセル範囲 As String
+Public Array1 As Variant
+Public Array2 As Variant
+Public Property Set 対象シート①(p対象シート As Worksheet)
+  Set m対象シート = p対象シート
+End Property
+Public Property Set 対象シート②(o対象シート As Worksheet)
+  Set n対象シート = o対象シート
+End Property
+Public Function セル範囲設定(p開始行 As Long, p末尾行 As Long, p開始列 As Long, p末尾列 As Long)
+    mセル範囲 = m対象シート.Range(m対象シート.Cells(p開始行, p開始列), m対象シート.Cells(p末尾行, p末尾列)).Address
+End Function
+Public Sub 対象範囲にのセル色を初期色にする()
+    m対象シート.Range(mセル範囲).Interior.ColorIndex = xlNone
+End Sub
+Public Sub 対象範囲にのセル色を赤にする()
+    Dim vセルアドレス As Variant
+    For Each vセルアドレス In 該当セル一覧(80)
+        m対象シート.Range(vセルアドレス).Interior.Color = RGB(255, 0, 0)
+    Next vセルアドレス
+End Sub
+Public Sub 対象範囲をAutoFilterにかける(pField As Long, pKeyword As String)
+    Dim keyword As String
+    m対象シート.Range(mセル範囲).AutoFilter Field:=pField, Criteria1:=pKeyword, Operator:=xlFilterValues, VisibleDropDown:=False
+End Sub
+Public Sub 抽出結果を配列格納と転記(n開始行 As Long, n開始列 As Long)
+    Array2 = m対象シート.Range("A1").CurrrentReigion.SpecialCells(xlCellTypeVisible)
+    Dim i As Long
+      
+    '■配列の最小値から最大値迄ループ処理する。
+    For i = LBound(sArray) To UBound(sArray)
+        sArray(i) = sArray(i) * 2
+    Next i
+End Sub
+
+'Public Sub AutoFilter結果を転記する(n開始行 As Long, n開始列 As Long)
+' Call AutoFilter結果を呼び出す(
+'       n対象シート.Range(n対象シート.Cells(n開始行, n開始列)).Resize(UBound(Array1, 1), UBound(Array1, 2)) = Array1
+'End Sub
+
+
+Private Function 該当セル一覧(p点数 As Long) As Collection
+    Dim セル一覧 As Collection
+    Set セル一覧 = New Collection
+
+    Dim vRange As Range
+    For Each vRange In m対象シート.Range(mセル範囲)
+       If vRange.Value > p点数 Then
+       
+       セル一覧.Add vRange.Address
+       
+       End If
+    Next vRange
+    
+    Set 該当セル一覧 = セル一覧
+End Function
